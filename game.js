@@ -1,3 +1,5 @@
+// https://github.com/turtlekangaroo/battleships
+// This file handles a lot of the logic for the game
 const helper = require('./helper.js');
 
 class Cell {

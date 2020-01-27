@@ -1,3 +1,5 @@
+// https://github.com/turtlekangaroo/battleships
+// This file handles the server-side of the game
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);

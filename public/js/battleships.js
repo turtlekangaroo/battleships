@@ -1,3 +1,5 @@
+// https://github.com/turtlekangaroo/battleships
+// This file handles the client-side of the game
 let socket = null;
 let myBoard = null;
 let enemyBoard = null;
