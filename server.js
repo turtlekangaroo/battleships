@@ -33,6 +33,28 @@ server.listen(PORT);
 let matches = [];
 
 io.on('connection', (socket) => {
+    socket.on('disconnect', () => {
+        let index = matches.findIndex(_m => _m.players.findIndex(_p => _p.socket === socket) !== -1);
+        if (index !== -1) {
+            let match = matches[index];
+            let playerIndex = match.players.findIndex(_p => _p.socket === socket);
+            if (playerIndex !== -1) {
+                let player = match.players[playerIndex];
+                // Update the match
+                if (match.players.length > 1) {
+                    match.players.splice(playerIndex, 1);
+                    match.players[0] = new game.Player(match.players[0].socket);
+                    match.gameState = GAME_STATE.WAITING_FOR_OPPONENT;
+                    io.sockets.to(match.name).emit('game_state', GAME_STATE.WAITING_FOR_OPPONENT);
+                }
+                // Delete the empty match
+                else {
+                    matches.splice(index, 1);
+                }
+            }
+        }
+    });
+
     socket.on('join_room', (room) => {
         if (room.length === 5 && /^[0-9]*$/g.test(room)) {
             let isNewRoom = !(room in io.nsps['/'].adapter.rooms);
@@ -63,21 +85,6 @@ io.on('connection', (socket) => {
             socket.join(room);
             socket.emit('room_joined', room);
             socket.emit('game_state', GAME_STATE.WAITING_FOR_OPPONENT);
-
-            socket.once('disconnect', () => {
-                if (!(room in io.nsps['/'].adapter.rooms)) {
-                    let match = matches.findIndex(x => x.room === room);
-                    if (match !== -1) {
-                        matches.splice(match, 1);
-                    }
-                }
-                else {
-                    match.players.splice(match.players.findIndex(x => x.socket === socket), 1);
-                    match.players[0] = new game.Player(match.players[0].socket);
-                    match.gameState = GAME_STATE.WAITING_FOR_OPPONENT;
-                    io.sockets.to(room).emit('game_state', GAME_STATE.WAITING_FOR_OPPONENT);
-                }
-            });
 
             /*socket.once('leave_room', () => {
                 socket.leave(room);
@@ -132,9 +139,14 @@ io.on('connection', (socket) => {
     });
 
     socket.on('shoot', (x, y) => {
+        // Find the correct match
         let index = matches.findIndex(_m => _m.players.findIndex(_p => _p.socket === socket) !== -1);
+
+        // Check if a match was found
         if (index !== -1) {
+            // Store the match in a variable
             let match = matches[index];
+            //
             let player = match.players.find(_p => _p.socket === socket);
             let otherPlayer = match.players.find(_p => _p !== player);
             if (match.gameState === GAME_STATE.PLAYING &&
@@ -142,13 +154,16 @@ io.on('connection', (socket) => {
                 x > -1 && x < 10 && y > -1 && y < 10 &&
                 player.enemyGrid[x][y].state === CELL_STATE.DEFAULT
             ) {
-                let oldShips = otherPlayer.getShips();
                 otherPlayer.grid[x][y].state = CELL_STATE.SHOT;
+
                 if (otherPlayer.grid[x][y].type === CELL.SHIP) {
                     let ships = otherPlayer.getShips();
-                    if (ships.findIndex(_ship => _ship.findIndex(_tile => _tile.x === x && _tile.y === y) !== -1) === -1) {
-                        oldShips.find(_ship => _ship.findIndex(_tile => _tile.x === x && _tile.y === y) !== -1).forEach((shipTile) => {
-                            otherPlayer.grid[shipTile.x][shipTile.y].state = CELL_STATE.DESTROYED;
+                    let shipTiles = otherPlayer.getShipTiles();
+
+                    let destroyedShip = ships.find(_ship => _ship.find(_t => _t.state !== CELL_STATE.SHOT) === undefined);
+                    if (destroyedShip !== undefined) {
+                        destroyedShip.forEach((tile) => {
+                            otherPlayer.grid[tile.x][tile.y].state = CELL_STATE.DESTROYED;
                         });
                     }
                 }

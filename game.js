@@ -62,10 +62,6 @@ class Player {
         shipTiles.forEach((shipTile) => {
             // Make sure that this tile isn't already part of another ship;
             if (!helper.tileAlreadyPartOfShip(ships, shipTile.x, shipTile.y)) {
-                if (shipTile.state !== 0) {
-                    return;
-                }
-
                 let x = shipTile.x;
                 let y = shipTile.y;
                 let ship = [];
@@ -76,8 +72,7 @@ class Player {
                         if (ship.findIndex(t => t.x === tile.x && t.y === tile.y) === -1 && !helper.tileAlreadyPartOfShip(ships, x, y)) {
                             ship.push(tile);
                         }
-                    }
-                    else {
+                    } else {
                         break;
                     }
 
@@ -92,8 +87,7 @@ class Player {
                         if (ship.findIndex(t => t.x === tile.x && t.y === tile.y) === -1 && !helper.tileAlreadyPartOfShip(ships, x, y)) {
                             ship.push(tile);
                         }
-                    }
-                    else {
+                    } else {
                         break;
                     }
 
@@ -108,8 +102,7 @@ class Player {
                         if (ship.findIndex(t => t.x === tile.x && t.y === tile.y) === -1 && !helper.tileAlreadyPartOfShip(ships, x, y)) {
                             ship.push(tile);
                         }
-                    }
-                    else {
+                    } else {
                         break;
                     }
 
@@ -124,8 +117,7 @@ class Player {
                         if (ship.findIndex(t => t.x === tile.x && t.y === tile.y) === -1 && !helper.tileAlreadyPartOfShip(ships, x, y)) {
                             ship.push(tile);
                         }
-                    }
-                    else {
+                    } else {
                         break;
                     }
 
