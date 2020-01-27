@@ -88,29 +88,6 @@ io.on('connection', (socket) => {
             socket.emit('room_joined', room);
             socket.emit('game_state', GAME_STATE.WAITING_FOR_OPPONENT);
 
-            /*socket.once('leave_room', () => {
-                socket.leave(room);
-                socket.off('place_ship', (x, y) => {
-                    if (!player.checkDiag(x, y) && match.gameState === GAME_STATE.PRE_GAME && !player.ready) {
-                        player.grid[x][y].type = player.grid[x][y].type == CELL.NONE ? CELL.SHIP : CELL.NONE;
-                        player.socket.emit('board_info', { 'myBoard': player.grid, 'enemyBoard': player.enemyGrid });
-                        player.socket.emit('ship_validation', !player.checkShips());
-                    }
-                });
-                socket.emit('game_state', GAME_STATE.MENU);
-
-                if (!(room in io.nsps['/'].adapter.rooms)) {
-                    let match = matches.findIndex(x => x.room === room);
-                    if (match !== -1) {
-                        matches.splice(match, 1);
-                    }
-                }
-                else {
-                    match.players.splice(match.players.findIndex(x => x.socket === socket), 1);
-                    io.sockets.to(room).emit('game_state', GAME_STATE.WAITING_FOR_OPPONENT);
-                }
-            });*/
-
             if (match.players.length === 2) {
                 match.players.forEach((player) => {
                     match.gameState = GAME_STATE.PRE_GAME;
@@ -207,6 +184,30 @@ io.on('connection', (socket) => {
                 player.grid[x][y].type = player.grid[x][y].type == CELL.NONE ? CELL.SHIP : CELL.NONE;
                 player.socket.emit('board_info', { 'myBoard': player.grid, 'enemyBoard': player.enemyGrid });
                 player.socket.emit('ship_validation', !player.checkShips());
+            }
+        }
+    });
+
+    socket.on('leave_room', () => {
+        let index = matches.findIndex(_m => _m.players.findIndex(_p => _p.socket === socket) !== -1);
+        if (index !== -1) {
+            let match = matches[index];
+            let playerIndex = match.players.findIndex(_p => _p.socket === socket);
+            if (playerIndex !== -1) {
+                let player = match.players[playerIndex];
+                // Update the match
+                if (match.players.length > 1) {
+                    match.players.splice(playerIndex, 1);
+                    match.players[0] = new game.Player(match.players[0].socket);
+                    match.gameState = GAME_STATE.WAITING_FOR_OPPONENT;
+                    io.sockets.to(match.name).emit('game_state', GAME_STATE.WAITING_FOR_OPPONENT);
+                }
+                // Delete the empty match
+                else {
+                    matches.splice(index, 1);
+                }
+                socket.leave(match.name);
+                socket.emit('game_state', GAME_STATE.MENU);
             }
         }
     });

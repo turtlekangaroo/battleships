@@ -50,9 +50,8 @@ function setup() {
     });
 
     $('body').append($('<button id="btn_join" onclick="joinRoom()">Join Room</button>'));
+    $('body').append($('<button id="btn_leave" onclick="leaveRoom()" disabled>Leave Room</button>'));
     $('body').append($('<button id="btn_ready" onclick="readyUp()" disabled>Ready Up</button>'));
-    // $('body').append($('<br/>'));
-    //$('body').append($('<button id="btn_leave" onclick="leaveRoom()" disabled>Leave Room</button>'));
 
     socket.on('disconnect', () => {
         location.reload();
@@ -63,11 +62,11 @@ function setup() {
         gameState = state;
         if (state === GAME_STATE.MENU) {
             $('#btn_join').removeAttr('disabled');
-            //$('#btn_leave').attr('disabled', '');
+            $('#btn_leave').attr('disabled', '');
         }
         else {
             $('#btn_join').attr('disabled', '');
-            //$('#btn_leave').removeAttr('disabled');
+            $('#btn_leave').removeAttr('disabled');
         }
 
         if (state === GAME_STATE.WAITING_FOR_OPPONENT) {
@@ -155,11 +154,11 @@ function shoot(x, y) {
     }
 }
 
-/*function leaveRoom() {
+function leaveRoom() {
     if (gameState !== GAME_STATE.MENU) {
         socket.emit('leave_room');
     }
-}*/
+}
 
 function readyUp() {
     socket.emit('ready');
