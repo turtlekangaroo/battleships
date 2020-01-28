@@ -111,6 +111,7 @@ io.on('connection', (socket) => {
                     match.gameState = GAME_STATE.PLAYING;
                     match.players.forEach((_p) => {
                         _p.socket.emit('game_state', match.gameState);
+                        _p.socket.emit('turn', match.players.indexOf(_p) === match.currentTurn);
                     });
                 }
             }
@@ -143,6 +144,28 @@ io.on('connection', (socket) => {
                     if (destroyedShip !== undefined) {
                         destroyedShip.forEach((tile) => {
                             otherPlayer.grid[tile.x][tile.y].state = CELL_STATE.DESTROYED;
+                            otherPlayer.getDiags(tile.x, tile.y).forEach((_diag) => {
+                                if (otherPlayer.grid[_diag.x][_diag.y].state === CELL_STATE.DEFAULT) {
+                                    otherPlayer.grid[_diag.x][_diag.y].state = CELL_STATE.SHOT;
+                                    player.enemyGrid[_diag.x][_diag.y] = otherPlayer.grid[_diag.x][_diag.y];
+                                }
+                            });
+                            for (let i = -1; i < 3; i+=2) {
+                                let _x = tile.x - i;
+                                let _y = tile.y;
+                                if (_x > -1 && _x < 10 && otherPlayer.grid[tile.x - i][tile.y].state === CELL_STATE.DEFAULT) {
+                                    otherPlayer.grid[_x][_y].state = CELL_STATE.SHOT;
+                                    player.enemyGrid[_x][_y] = otherPlayer.grid[_x][_y];
+                                }
+                            }
+                            for (let j = -1; j < 3; j+=2) {
+                                let _x = tile.x;
+                                let _y = tile.y - j;
+                                if (_y > -1 && _y < 10 && otherPlayer.grid[_x][_y].state === CELL_STATE.DEFAULT) {
+                                    otherPlayer.grid[_x][_y].state = CELL_STATE.SHOT;
+                                    player.enemyGrid[_x][_y] = otherPlayer.grid[_x][_y];
+                                }
+                            }
                         });
                     }
                 }
@@ -170,6 +193,9 @@ io.on('connection', (socket) => {
                 }
                 else if (otherPlayer.grid[x][y].type !== CELL.SHIP) {
                     match.currentTurn = match.currentTurn === 0 ? 1 : 0;
+                    match.players.forEach((_p) => {
+                        _p.socket.emit('turn', match.players.indexOf(_p) === match.currentTurn);
+                    });
                 }
             }
         }

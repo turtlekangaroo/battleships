@@ -52,6 +52,7 @@ function setup() {
     $('body').append($('<button id="btn_join" onclick="joinRoom()">Join Room</button>'));
     $('body').append($('<button id="btn_leave" onclick="leaveRoom()" disabled>Leave Room</button>'));
     $('body').append($('<button id="btn_ready" onclick="readyUp()" disabled>Ready Up</button>'));
+    $('body').append($('<h2 id="turn_info"></h2>'));
 
     socket.on('disconnect', () => {
         location.reload();
@@ -76,21 +77,27 @@ function setup() {
         switch (state) {
             case GAME_STATE.MENU:
                 document.title = 'Battleships - Menu';
+                $('#turn_info').hide();
                 break;
             case GAME_STATE.WAITING_FOR_OPPONENT:
                 document.title = 'Battleships - Waiting';
+                $('#turn_info').hide();
                 break;
             case GAME_STATE.PRE_GAME:
                 document.title = 'Battleships - Placement';
+                $('#turn_info').hide();
                 break;
             case GAME_STATE.PLAYING:
                 document.title = 'Battleships - Playing';
+                $('#turn_info').show();
                 break;
             case GAME_STATE.END:
                 document.title = 'Battleships - Ended';
+                $('#turn_info').hide();
                 break;
             default:
                 document.title = 'Battleships';
+                $('#turn_info').hide();
                 break;
         }
     });
@@ -108,6 +115,10 @@ function setup() {
     socket.on('ready_success', () => {
         $('#btn_ready').attr('disabled', '');
         ready = true;
+    });
+    
+    socket.on('turn', (state) => {
+        $('#turn_info').html(state ? 'It\'s your turn.' : 'It\'s the enemy\'s turn.');
     });
 }
 

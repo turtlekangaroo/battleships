@@ -20,25 +20,31 @@ class Player {
         // -----------------
     }
 
-    checkDiag(x, y) {
+    getDiags(x, y) {
         let diags = [];
 
         if (x > 0) {
             if (y > 0) {
-                diags.push(this.grid[x - 1][y - 1]);
+                diags.push({'type': this.grid[x - 1][y - 1].type, 'x': x - 1, 'y': y - 1});
             }
             if (y < 9) {
-                diags.push(this.grid[x - 1][y + 1]);
+                diags.push({'type': this.grid[x - 1][y + 1].type, 'x': x - 1, 'y': y + 1});
             }
         }
         if (x < 9) {
             if (y > 0) {
-                diags.push(this.grid[x + 1][y - 1]);
+                diags.push({'type': this.grid[x + 1][y - 1].type, 'x': x + 1, 'y': y - 1});
             }
             if (y < 9) {
-                diags.push(this.grid[x + 1][y + 1]);
+                diags.push({'type': this.grid[x + 1][y + 1].type, 'x': x + 1, 'y': y + 1});
             }
         }
+
+        return diags;
+    }
+
+    checkDiag(x, y) {
+        let diags = this.getDiags(x, y);
 
         return diags.findIndex(x => x !== undefined && x.type === 1) !== -1;
     }
