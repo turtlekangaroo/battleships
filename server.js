@@ -188,6 +188,8 @@ io.on('connection', (socket) => {
                     match.gameState = GAME_STATE.END;
                     match.players.forEach((player) => {
                         player.socket.emit('game_state', match.gameState);
+                        player.enemyGrid = match.players.find(_p => _p !== player).grid;
+                        player.socket.emit('board_info', { 'myBoard': player.grid, 'enemyBoard': player.enemyGrid });
                     });
                     console.log(`Player ${match.players.indexOf(player)} has won the game.`);
                 }
